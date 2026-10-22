@@ -1,0 +1,35 @@
+name: Quality and maintenance
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 5 * * 1'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - run: node scripts/check-site.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maintenance-report
+          path: |
+            dist/build-report.json
+            playwright-report/
+          retention-days: 14
