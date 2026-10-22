@@ -25,11 +25,13 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
       - run: node scripts/check-site.mjs
+      - run: node scripts/readiness.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: maintenance-report
           path: |
             dist/build-report.json
+            dist/readiness-report.json
             playwright-report/
           retention-days: 14

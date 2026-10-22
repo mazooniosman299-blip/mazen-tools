@@ -1,6 +1,6 @@
 # Mazen Tools
 
-Free Arabic/English PWA with 11 working local browser tools. No accounts, file uploads, ads, analytics, backend or paid dependency. Vite bundles pdf-lib, PDF.js and QRCode locally. All 32 localized pages are statically generated with metadata, canonical, hreflang, structured data and internal navigation. PDF and QR dependencies load only when needed.
+Free Arabic/English PWA with 11 working local browser tools. No accounts, file uploads, ads, analytics, backend or paid dependency. Vite bundles pdf-lib, PDF.js and QRCode locally. All 38 localized pages are statically generated with metadata, canonical, hreflang, structured data and internal navigation. PDF and QR dependencies load only when needed.
 
 ## Development
 
@@ -24,4 +24,8 @@ Advertising is OFF. No publisher ID, ad script, ads.txt seller declaration, reve
 
 ## Contact
 
-A public GitHub issue tracker is the intended support channel. The repository-creation permission was denied in this session; configure its real URL before an AdSense submission. Do not send sensitive documents.
+The owner explicitly approved publication of mazenosman968@gmail.com. The bilingual contact page has a mailto link and privacy-conscious reporting instructions. No message was sent and mailbox delivery was not tested. GitHub repository creation is still denied by the official connection; no issue-tracker link is fabricated.
+
+## Monetization and search preparation
+
+See MONETIZATION.md and SEARCH-CONSOLE.md. The 38 statically rendered pages include original tool guidance, About, policies and contact. `config/monetization.json` disables all advertising. Build-time verification inputs are optional public values; no placeholder IDs are published. `node scripts/readiness.mjs` generates an internal assessment and records the workspace-domain eligibility concern. Maintenance follows MAINTENANCE.md.

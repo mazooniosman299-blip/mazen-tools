@@ -1,0 +1,11 @@
+{
+  "enabled": false,
+  "publisherId": "",
+  "siteApproved": false,
+  "domainEligibilityVerified": false,
+  "certifiedCmpConfigured": false,
+  "consentAdapterReady": false,
+  "privacyReviewedForAds": false,
+  "activationReviewed": false,
+  "placements": { "tool-after-guide": "" }
+}
