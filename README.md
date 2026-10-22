@@ -4,7 +4,7 @@ Free Arabic/English PWA with 11 working local browser tools. No accounts, file u
 
 ## Development
 
-Node 22+; `npm ci`, `npm test`, `npm run build`, `npm run test:browser`. Browser tests use system Chromium locally; CI installs Playwright Chromium. `node scripts/check-site.mjs` checks generated SEO and links. Optional `PUBLIC_ORIGIN=https://...` adds actual public HTTP checks. `SITE_ORIGIN` controls canonical and sitemap URLs during build; set it to the final hosting origin.
+Node 22+; `npm ci`, `npm test`, `npm run build`, `npm run test:browser`. Browser tests use system Chromium locally; CI installs Playwright Chromium. The production test server enforces _headers, MIME types and 404 responses. Tests cover desktop and Pixel 7 emulation. PUBLIC_ORIGIN runs the same suite against a deployed host. See HOTFIX.md for the current verification limits. `node scripts/check-site.mjs` checks generated SEO and links. Optional `PUBLIC_ORIGIN=https://...` adds actual public HTTP checks. `SITE_ORIGIN` controls canonical and sitemap URLs during build; set it to the final hosting origin.
 
 ## Cloudflare free deployment
 
