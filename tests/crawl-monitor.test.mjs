@@ -17,3 +17,9 @@ test('ordinary tool requests are not logged and monitor requests retain no sourc
  assert.equal(crawlRecord(new Request('https://example.com/en/merge-pdf/'),200),null);
  assert.equal(crawlRecord(new Request('https://example.com/sitemap.xml',{headers:{'User-Agent':'MazenTools-Sitemap-Check/1.0','CF-Connecting-IP':'192.0.2.1'}}),200).sourceIp,undefined);
 });
+
+test('an asset exception is propagated without inventing an HTTP response status',async()=>{
+ const original=console.error;let observed;console.error=row=>{observed=row};
+ const failure=new Error('test upstream failure');
+ try{await assert.rejects(worker.fetch(new Request('https://example.com/sitemap.xml'),{ASSETS:{fetch:async()=>{throw failure}}}),error=>error===failure);assert.equal(observed.status,null);}finally{console.error=original;}
+});

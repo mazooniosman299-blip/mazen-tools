@@ -19,8 +19,8 @@ export default {
       if(record)console.log(record);
       return response;
     }catch(error){
-      const record=crawlRecord(request,502);
-      if(record)console.error({...record,error:'Asset fetch failed'});
+      const record=crawlRecord(request,null);
+      if(record)console.error({...record,error:'Asset fetch threw before a response was observed'});
       throw error;
     }
   }
