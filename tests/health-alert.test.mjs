@@ -8,3 +8,9 @@ test('new crawl failure creates an issue with evidence',async()=>{const s=scenar
 test('repeated failures update the same issue rather than creating duplicates',async()=>{const s=scenario({existing:true,functional:'failure'});await syncHealthAlert(s.args);assert.equal(s.writes.length,1);assert.equal(s.writes[0].method,'PATCH');assert.match(s.writes[0].path,/issues\/7$/)});
 test('a successful run closes the existing alert',async()=>{const s=scenario({existing:true});await syncHealthAlert(s.args);assert.equal(s.writes[0].body.state,'closed')});
 test('missing results cannot close an alert or report recovery',async()=>{const s=scenario({existing:true,crawl:'skipped'});await assert.rejects(syncHealthAlert(s.args),/Incomplete/);assert.equal(s.writes.length,0)});
+
+test('daily crawl success cannot clear a weekly functional failure that was not rerun',async()=>{
+ const s=scenario({functional:'skipped'});
+ s.args.api=async()=>[{number:7,body:'<!-- mazen-tools-health-alert:v1 --> functional=failure; Evidence: https://github.com/owner/repo/actions/runs/122'}];
+ assert.equal(await syncHealthAlert(s.args),'awaiting-functional-recheck');assert.equal(s.writes.length,0);
+});
