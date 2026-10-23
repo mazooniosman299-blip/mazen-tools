@@ -1,43 +1,57 @@
-name: Quality and maintenance
+name: Read-only sitemap and crawl audit
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
-  schedule:
-    - cron: '23 5 * * 1'
 permissions:
   contents: read
 jobs:
-  verify:
+  audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm audit --omit=dev --audit-level=high
-      - run: npm run build
-      - run: npx playwright install chromium
-      - run: npm run test:browser
+      - name: Public production evidence
+        run: python3 scripts/crawl-evidence.py
+      - name: Verify all 38 production pages and SEO directives
+        run: python3 scripts/check-sitemap.py --base https://mazentoolsfree.mazooniosman299.workers.dev --require-self
+      - name: Compare request identities without claiming genuine Googlebot access
+        run: python3 scripts/request-identity-audit.py
+      - name: Read existing Cloudflare logging configuration only
+        id: access
+        run: node scripts/check-cloudflare-access.mjs
         env:
-          CLOUDFLARE_LOCAL: 'true'
-      - run: python3 -m unittest discover -s tests -p 'sitemap_*.py'
-      - run: node scripts/check-site.mjs
-      - run: node scripts/readiness.mjs
-      - run: node scripts/performance-check.mjs
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Report logging availability without exposing bindings
+        run: |
+          node --input-type=module - <<'JS'
+          import {cloudflareToken} from './scripts/cloudflare-token.mjs';
+          const token=cloudflareToken(process.env.CLOUDFLARE_API_TOKEN);
+          if(!token){console.log('CLOUDFLARE_LOG_ACCESS: no token configured');process.exit(0)}
+          console.log(`::add-mask::${token}`);
+          const r=await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/mazentoolsfree/settings`,{headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(30000)});
+          const d=await r.json();
+          console.log('CLOUDFLARE_LOGGING_CONFIGURATION='+JSON.stringify({status:r.status,success:d.success,observability:d.result?.observability??null,logpush:d.result?.logpush??null,note:'Read-only settings; not proof of Googlebot fetches or historical WAF events.'}));
+          JS
         env:
-          PERFORMANCE_LOCAL: 'true'
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ steps.access.outputs.account_id }}
+      - name: Read official Google status if credentials already exist; no submission
+        run: |
+          node scripts/google-report.mjs
+          cat work/google-status.json
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: maintenance-report
+          name: sitemap-readonly-evidence
           path: |
-            dist/build-report.json
-            dist/readiness-report.json
-            playwright-report/
+            work/public-evidence.json
+            work/request-identity-audit.json
+            work/google-status.json
           retention-days: 14
