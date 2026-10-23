@@ -13,10 +13,13 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):return None
 opener=urllib.request.build_opener(NoRedirect)
 def fetch(path):
- with opener.open(urllib.request.Request(base+path,headers={'User-Agent':'MazenTools-Sitemap-Check/1.0'}),timeout=15) as r:
-  assert r.status==200,(path,r.status)
-  assert 'noindex' not in r.headers.get('X-Robots-Tag','').lower(),path
-  return r.headers,r.read()
+ try:
+  with opener.open(urllib.request.Request(base+path,headers={'User-Agent':'MazenTools-Sitemap-Check/1.0'}),timeout=15) as r:
+   assert r.status==200,(path,r.status)
+   assert 'noindex' not in r.headers.get('X-Robots-Tag','').lower(),path
+   return r.headers,r.read()
+ except urllib.error.HTTPError as error:
+  raise AssertionError(f'{base+path}: HTTP {error.code}; Server={error.headers.get("Server", "unknown")}') from error
 h,body=fetch('/sitemap.xml');assert h.get_content_type() in ['application/xml','text/xml'];root=ET.fromstring(body);ns={'s':'http://www.sitemaps.org/schemas/sitemap/0.9','x':'http://www.w3.org/1999/xhtml'}
 if a.require_release_headers:
  assert h.get_content_charset()=='utf-8' and 'must-revalidate' in h.get('Cache-Control','')
@@ -36,8 +39,7 @@ warnings=[]
 try:opener.open(urllib.request.Request(base+'/nonexistent-sitemap-check-404',headers={'User-Agent':'MazenTools-Sitemap-Check/1.0'}),timeout=10);raise AssertionError('Missing URL returned success (soft 404)')
 except urllib.error.HTTPError as e:
  unknown_status=e.code
- assert e.code in [403,404,410],f'Unknown route returned unexpected HTTP {e.code}'
- if e.code==403:warnings.append('An unknown test route is forbidden (403), rather than not found (404). All listed sitemap URLs are checked separately and must return 200.')
+ assert e.code == 404,f'{base}/nonexistent-sitemap-check-404: expected HTTP 404, received {e.code}'
 with urllib.request.urlopen(urllib.request.Request(base+'/google611146e9ceec162a.html',headers={'User-Agent':'MazenTools-Sitemap-Check/1.0'}),timeout=15) as verification:
  assert verification.status==200 and verification.read()==b'google-site-verification: google611146e9ceec162a.html'
 print(json.dumps({'scope':'HTTP checks against supplied base, not Google indexing confirmation','base':base,'sitemapStatus':200,'contentType':h.get_content_type(),'xmlValid':True,'urlsChecked':len(seen),'robotsAllowsGooglebot':True,'canonicalMatches':True,'redirectsRejected':True,'verificationFilePreserved':True,'real404':unknown_status==404,'unknownRouteStatus':unknown_status,'warnings':warnings},indent=2))

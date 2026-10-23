@@ -39,5 +39,5 @@ class SitemapRegression(unittest.TestCase):
  def test_robots_block_is_rejected(self):self.check('blocked',False)
  def test_all_monitor_requests_identify_themselves(self):self.check('agent',True)
  def test_soft404_is_rejected(self):self.check('soft404',False)
- def test_forbidden_unknown_route_is_reported_separately(self):self.check('forbidden',True)
+ def test_forbidden_unknown_route_is_rejected(self):self.check('forbidden',False)
 if __name__=='__main__':unittest.main()

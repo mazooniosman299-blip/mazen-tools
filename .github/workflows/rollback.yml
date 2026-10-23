@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   rollback:
-    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && github.repository == format('{0}/mazen-tools', github.repository_owner)
+    if: vars.CLOUDFLARE_DEPLOY_ENABLED != 'false' && github.repository == format('{0}/mazen-tools', github.repository_owner)
     environment: production
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -25,6 +25,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Resolve and verify the existing Cloudflare account
+        id: access
+        run: node scripts/check-cloudflare-access.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       - uses: actions/download-artifact@v4
         with:
           name: deployment-receipt-${{ inputs.deployment_run_id }}
@@ -35,4 +41,4 @@ jobs:
         env:
           CLOUDFLARE_DEPLOY_ENABLED: 'true'
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ steps.access.outputs.account_id }}

@@ -19,6 +19,9 @@ export async function promoteSafely({previous, candidate, readCurrent, deploy, v
     assert.equal(active.id, promoted.id, 'Another deployment replaced this deployment');
     assert.deepEqual(traffic(active.versions), [{version_id: candidate, percentage: 100}]);
     await verify();
+    const verified = await readCurrent();
+    assert.equal(verified.id, promoted.id, 'Deployment changed during public verification');
+    assert.deepEqual(traffic(verified.versions), [{version_id: candidate, percentage: 100}]);
     await record({previous, candidate, promoted, status: 'public-checks-passed'});
   } catch (error) {
     // Never overwrite a subsequent deployment made by someone else.

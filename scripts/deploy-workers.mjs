@@ -7,6 +7,8 @@ const origin = 'https://mazentoolsfree.mazooniosman299.workers.dev';
 const worker = 'mazentoolsfree';
 const account = process.env.CLOUDFLARE_ACCOUNT_ID;
 const token = cloudflareToken(process.env.CLOUDFLARE_API_TOKEN);
+// Register the normalized value too: the stored secret may include a curl wrapper.
+if (token && process.env.GITHUB_ACTIONS === 'true') console.log(`::add-mask::${token}`);
 assert.ok(process.env.CLOUDFLARE_DEPLOY_ENABLED === 'true', 'Deployment is disabled until official account setup is complete');
 assert.match(account || '', /^[a-f0-9]{32}$/i, 'Missing actual Cloudflare account ID');
 assert.ok(token, 'Missing official Cloudflare authorization');
@@ -49,7 +51,9 @@ if (process.argv.includes('--rollback')) {
   assert.equal(snapshot.origin, origin);
   assert.equal(previous.id, snapshot.promoted.id, 'Current deployment differs from this snapshot; no rollback performed');
   const restored = await deploy(snapshot.previous.versions);
-  assert.equal((await readCurrent()).id, restored.id);
+  const confirmed = await readCurrent();
+  assert.equal(confirmed.id, restored.id);
+  assert.deepEqual(traffic(confirmed.versions), traffic(snapshot.previous.versions));
   console.log('Previous deployment restored; all versions retained.');
 } else {
   const build = JSON.parse(await readFile('dist/build-report.json', 'utf8'));

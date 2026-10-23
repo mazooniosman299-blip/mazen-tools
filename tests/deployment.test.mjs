@@ -29,3 +29,10 @@ test('invalid traffic distributions are refused before deployment', () => {
   assert.throws(() => traffic([{version_id: old, percentage: 50}]));
   assert.throws(() => traffic([{version_id: old, percentage: 100}, {version_id: old, percentage: 0}]));
 });
+
+test('deployment changed during successful checks is detected without overwriting it', async () => {
+  const s = scenario({drift: true});
+  await assert.rejects(promoteSafely(s.options), /newer deployment/);
+  assert.equal(s.writes.length, 1);
+  assert.equal(s.records.at(-1).status, 'failed-newer-deployment-left-untouched');
+});

@@ -3,6 +3,8 @@ import {mkdir, writeFile, appendFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 await mkdir('work', {recursive:true});
 const token=cloudflareToken(process.env.CLOUDFLARE_API_TOKEN);
+// Register the normalized value too: the stored secret may include a curl wrapper.
+if (token && process.env.GITHUB_ACTIONS === 'true') console.log(`::add-mask::${token}`);
 async function finish(report){
   await writeFile('work/cloudflare-access.json',JSON.stringify(report,null,2));
   if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`ready=${report.ready}\naccount_id=${report.accountId||''}\n`);

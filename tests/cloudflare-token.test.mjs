@@ -15,3 +15,9 @@ test('the official curl header or token JSON can be imported without executing c
   assert.equal(cloudflareToken(JSON.stringify({value: token})), token);
   assert.throws(() => cloudflareToken(`Authorization: Bearer ${token}\nAuthorization: Bearer ${token}`), /Multiple authorization/);
 });
+
+test('header delimiters and malformed wrapped credentials are rejected without disclosure', () => {
+  for (const value of ['token:invalid', 'token\r\nInjected: true', 'Authorization: Bearer private-invalid-token!tail', '{"value":"private invalid token"}']) {
+    assert.throws(() => cloudflareToken(value), error => !error.message.includes(value) && error.message.includes('GitHub Secrets'));
+  }
+});
