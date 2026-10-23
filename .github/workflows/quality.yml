@@ -18,6 +18,16 @@ jobs:
         run: python3 scripts/check-sitemap.py --base https://mazentoolsfree.mazooniosman299.workers.dev --require-self
       - name: Compare request identities without claiming genuine Googlebot access
         run: python3 scripts/request-identity-audit.py
+      - name: Identify the public denial response without changing protection
+        run: |
+          python3 - <<'PYCODE'
+          import urllib.request,urllib.error,json
+          base='https://mazentoolsfree.mazooniosman299.workers.dev'
+          for path in ['/sitemap.xml','/robots.txt']:
+           try:
+            with urllib.request.urlopen(urllib.request.Request(base+path,headers={'User-Agent':'Python-urllib/3.12'}),timeout=20) as r:print('DEFAULT_AGENT_STATUS',path,r.status)
+           except urllib.error.HTTPError as e: print('DENIAL_RESPONSE='+json.dumps({'url':base+path,'status':e.code,'server':e.headers.get('Server'),'cfRay':e.headers.get('CF-RAY'),'body':e.read(200).decode('utf-8',errors='replace')}))
+          PYCODE
       - name: Read existing Cloudflare logging configuration only
         id: access
         run: node scripts/check-cloudflare-access.mjs
