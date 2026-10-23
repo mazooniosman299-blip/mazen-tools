@@ -1,7 +1,8 @@
+import {cloudflareToken} from './cloudflare-token.mjs';
 import {mkdir, writeFile, appendFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 await mkdir('work', {recursive:true});
-const token=process.env.CLOUDFLARE_API_TOKEN;
+const token=cloudflareToken(process.env.CLOUDFLARE_API_TOKEN);
 async function finish(report){
   await writeFile('work/cloudflare-access.json',JSON.stringify(report,null,2));
   if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`ready=${report.ready}\naccount_id=${report.accountId||''}\n`);

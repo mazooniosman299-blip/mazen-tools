@@ -1,3 +1,4 @@
+import {cloudflareToken} from './cloudflare-token.mjs';
 import assert from 'node:assert/strict';
 import {readFile, writeFile, mkdir} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
@@ -5,7 +6,7 @@ import {traffic, promoteSafely} from './deployment-policy.mjs';
 const origin = 'https://mazentoolsfree.mazooniosman299.workers.dev';
 const worker = 'mazentoolsfree';
 const account = process.env.CLOUDFLARE_ACCOUNT_ID;
-const token = process.env.CLOUDFLARE_API_TOKEN;
+const token = cloudflareToken(process.env.CLOUDFLARE_API_TOKEN);
 assert.ok(process.env.CLOUDFLARE_DEPLOY_ENABLED === 'true', 'Deployment is disabled until official account setup is complete');
 assert.match(account || '', /^[a-f0-9]{32}$/i, 'Missing actual Cloudflare account ID');
 assert.ok(token, 'Missing official Cloudflare authorization');
