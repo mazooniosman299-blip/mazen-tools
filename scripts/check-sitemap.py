@@ -33,7 +33,7 @@ for item in urls:
   assert any(x.get('href')==loc for x in links)
 assert all(link.get('href') in seen for item in urls for link in item.findall('x:link',ns))
 try:opener.open(base+'/nonexistent-sitemap-check-404',timeout=10);raise AssertionError('Missing URL returned success')
-except urllib.error.HTTPError as e:assert e.code==404
+except urllib.error.HTTPError as e:assert e.code==404,f'Unknown route returned HTTP {e.code}; expected 404'
 with urllib.request.urlopen(base+'/google611146e9ceec162a.html',timeout=15) as verification:
  assert verification.status==200 and verification.read()==b'google-site-verification: google611146e9ceec162a.html'
 print(json.dumps({'scope':'HTTP checks against supplied base, not Google indexing confirmation','base':base,'sitemapStatus':200,'contentType':h.get_content_type(),'xmlValid':True,'urlsChecked':len(seen),'robotsAllowsGooglebot':True,'canonicalMatches':True,'redirectsRejected':True,'verificationFilePreserved':True,'real404':True},indent=2))

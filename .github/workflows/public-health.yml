@@ -25,9 +25,6 @@ jobs:
         run: python3 scripts/check-sitemap.py --base "$PUBLIC_ORIGIN" > work/crawl-health.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Weekly real functional downloads on desktop and mobile
-        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '47 3 * * 1'
-        run: npm run test:browser
       - name: Measure real browser navigation performance
         run: node scripts/performance-check.mjs
       - name: Concise report
@@ -43,6 +40,31 @@ jobs:
             work/public-evidence.json
             work/crawl-health.json
             work/performance.json
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  functional:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '47 3 * * 1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PUBLIC_ORIGIN: https://mazentoolsfree.mazooniosman299.workers.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Real public tool execution and download validation
+        run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-functional-${{ github.run_id }}
+          path: |
             playwright-report/
             test-results/
           retention-days: 14
