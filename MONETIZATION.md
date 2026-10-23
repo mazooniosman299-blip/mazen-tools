@@ -44,3 +44,12 @@ Official sources checked:
 - https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat
 
 First confirmed revenue requires actual accepted domain/site, official account and identity/payment setup, approved ads and compliant consent, genuine users, eligible impressions, and an amount recorded by AdSense. Estimated earnings are not finalized payout. No earnings data or approval was available here.
+
+
+## Session update — 23 October 2026
+
+Advertising is disabled in config/monetization.json. Publisher ID is empty. No AdSense application, approval, impressions or income is confirmed. No artificial traffic or clicks are used.
+The build supports the real ADSENSE_PUBLISHER_ID and ADSENSE_ADS_TXT. It validates the account format and requires the seller record to match; ads.txt is omitted until an authentic account is supplied. ad-policy.js gates advertising on site approval, domain eligibility, reviewed privacy and a certified consent adapter. Do not invent a placeholder account or activate scripts merely to appear ready.
+The current workers.dev hostname's acceptance must be checked in the actual AdSense account. A domain decision and Google's review may be required. Technical preparation alone does not establish eligibility.
+Search growth: prioritize the useful bilingual receipt-to-PDF, PDF-page extraction, image-size, transparency and QR-printing guides. Evaluate Search Console impressions/clicks before changing titles or adding content. Review genuine usage and failures with privacy safeguards; never report synthetic tests as visitors or income. Weekly review: fix indexing errors first, improve pages with real impressions and weak click-through, add original examples in response to actual user needs. Do not mass-generate near-duplicate pages.
+Google reporting can read official APIs when OAuth and the relevant account IDs are configured. Raw traffic and financial reports are private and excluded from public artifacts. Existing AdSense code integration is preparatory; applying and accepting legal terms requires the account owner.
