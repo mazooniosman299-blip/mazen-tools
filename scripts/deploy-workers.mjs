@@ -14,9 +14,9 @@ assert.ok(process.env.CLOUDFLARE_DEPLOY_ENABLED === 'true', 'Deployment is disab
 assert.match(account || '', /^[a-f0-9]{32}$/i, 'Missing actual Cloudflare account ID');
 assert.ok(token, 'Missing official Cloudflare authorization');
 const prefix = `/accounts/${account}/workers/scripts/${worker}`;
-async function api(endpoint, body) {
+async function api(endpoint, body, method = body ? 'POST' : 'GET') {
   const response = await fetch('https://api.cloudflare.com/client/v4' + endpoint, {
-    method: body ? 'POST' : 'GET',
+    method,
     headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
     ...(body ? {body: JSON.stringify(body)} : {}), signal: AbortSignal.timeout(30000)
   });
@@ -81,6 +81,18 @@ if (process.argv.includes('--rollback')) {
   const candidate = candidates[0].id;
   await promoteSafely({previous, candidate, readCurrent, deploy, record, verify: async () => {
     await command(process.execPath, ['scripts/check-release.mjs']);
+    // Version promotion does not apply script-level observability settings.
+    // Patch this setting explicitly; do not alter bindings, routes or security.
+    const logging=JSON.parse(await readFile('wrangler.jsonc','utf8')).observability;
+    assert.equal(logging.enabled,true);
+    assert.equal(logging.logs.invocation_logs,false);
+    await api(prefix+'/script-settings',{observability:logging},'PATCH');
+    const applied=await api(prefix+'/script-settings');
+    assert.equal(applied.observability?.enabled,true,'Crawl logging was not enabled');
+    assert.equal(applied.observability?.logs?.enabled,true,'Persistent crawl logs were not enabled');
+    assert.equal(applied.observability?.logs?.invocation_logs,false,'Unexpected invocation logging');
+    console.log('Crawl logging enabled and confirmed via script-settings; invocation logging disabled.');
+
     await command('python3', ['scripts/crawl-evidence.py']);
     await command('python3', ['scripts/check-sitemap.py', '--base', origin, '--require-self']);
     // Downloads and file contents are tested against the public release, not just the build.
