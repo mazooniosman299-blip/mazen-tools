@@ -6,6 +6,9 @@ on:
     - cron: '47 3 * * 1'
 permissions:
   contents: read
+concurrency:
+  group: mazen-tools-public-health
+  cancel-in-progress: false
 jobs:
   crawl:
     runs-on: ubuntu-latest
@@ -68,3 +71,23 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 14
+
+  notify:
+    needs: [crawl, functional]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Report failures without duplicate issues; close after recovery
+        run: node scripts/health-alert.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CRAWL_RESULT: ${{ needs.crawl.result }}
+          FUNCTIONAL_RESULT: ${{ needs.functional.result }}
