@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile, writeFile, mkdir} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
 import {traffic, promoteSafely} from './deployment-policy.mjs';
+import {retryAssetUpload, transientAssetUploadFailure} from './upload-retry.mjs';
 const origin = 'https://mazentoolsfree.mazooniosman299.workers.dev';
 const worker = 'mazentoolsfree';
 const account = process.env.CLOUDFLARE_ACCOUNT_ID;
@@ -33,10 +34,22 @@ async function readCurrent() {
 async function deploy(versions) {
   return api(prefix + '/deployments', {strategy: 'percentage', versions: traffic(versions), annotations: {'workers/message': 'Mazen Tools tested release / automated recovery'}});
 }
-function command(bin, args, extra = {}) {
+function command(bin, args, extra = {}, captureUpload = false) {
   return new Promise((resolve, reject) => {
-    const child = spawn(bin, args, {stdio: 'inherit', env: {...process.env, WRANGLER_SEND_METRICS: 'false', CLOUDFLARE_API_TOKEN: token, ...extra}});
-    child.on('error', reject); child.on('exit', code => code === 0 ? resolve() : reject(new Error(`${bin} failed (${code})`)));
+    const child = spawn(bin, args, {stdio: captureUpload ? ['ignore', 'pipe', 'pipe'] : 'inherit', env: {...process.env, WRANGLER_SEND_METRICS: 'false', CLOUDFLARE_API_TOKEN: token, ...extra}});
+    let output = '';
+    if (captureUpload) {
+      for (const [stream, destination] of [[child.stdout, process.stdout], [child.stderr, process.stderr]]) {
+        stream.on('data', chunk => { output = (output + chunk.toString()).slice(-16000); destination.write(chunk); });
+      }
+    }
+    child.on('error', reject);
+    child.on('close', code => {
+      if (code === 0) return resolve();
+      const error = new Error(`${bin} failed (${code})`);
+      error.transientAssetUpload = captureUpload && transientAssetUploadFailure(output);
+      reject(error);
+    });
   });
 }
 await mkdir('work', {recursive: true});
@@ -61,7 +74,7 @@ if (process.argv.includes('--rollback')) {
   assert.equal(build.adsEnabled, false, 'Advertising activation requires its own reviewed release');
   await record({previous, status: 'snapshot-before-upload'});
   const tag = `ci-${process.env.GITHUB_RUN_ID || Date.now()}-${process.env.GITHUB_RUN_ATTEMPT || '1'}`;
-  await command('npx', ['--no-install', 'wrangler', 'versions', 'upload', '--config', 'wrangler.jsonc', '--keep-vars', '--strict', '--tag', tag, '--message', 'Mazen Tools checked production assets']);
+  await retryAssetUpload(() => command('npx', ['--no-install', 'wrangler', 'versions', 'upload', '--config', 'wrangler.jsonc', '--keep-vars', '--strict', '--tag', tag, '--message', 'Mazen Tools checked production assets'], {}, true), {report: attempt => console.log(`Cloudflare asset-session error 10013; bounded upload retry ${attempt}/2. Traffic has not been promoted.`)});
   const {items} = await api(prefix + '/versions?deployable=true');
   const candidates = items.filter(v => v.annotations?.['workers/tag'] === tag);
   assert.equal(candidates.length, 1, 'Uploaded version could not be identified unambiguously; no promotion');
