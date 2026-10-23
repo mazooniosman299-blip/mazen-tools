@@ -8,7 +8,7 @@ class PageHead(HTMLParser):
   if tag=='meta' and d.get('name','').lower() in ['robots','googlebot'] and 'noindex' in d.get('content','').lower():self.noindex=True
   if tag=='link' and d.get('rel')=='canonical':self.canonical=d.get('href')
   if tag=='link' and d.get('rel')=='alternate':self.languages.add(d.get('hreflang'))
-p=argparse.ArgumentParser();p.add_argument('--base',required=True);p.add_argument('--require-self',action='store_true');a=p.parse_args();base=a.base.rstrip('/');origin='https://mazentoolsfree.mazooniosman299.workers.dev'
+p=argparse.ArgumentParser();p.add_argument('--base',required=True);p.add_argument('--require-self',action='store_true');p.add_argument('--require-release-headers',action='store_true');a=p.parse_args();base=a.base.rstrip('/');origin='https://mazentoolsfree.mazooniosman299.workers.dev'
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):return None
 opener=urllib.request.build_opener(NoRedirect)
@@ -18,7 +18,7 @@ def fetch(path):
   assert 'noindex' not in r.headers.get('X-Robots-Tag','').lower(),path
   return r.headers,r.read()
 h,body=fetch('/sitemap.xml');assert h.get_content_type() in ['application/xml','text/xml'];root=ET.fromstring(body);ns={'s':'http://www.sitemaps.org/schemas/sitemap/0.9','x':'http://www.w3.org/1999/xhtml'}
-if a.require_self:
+if a.require_release_headers:
  assert h.get_content_charset()=='utf-8' and 'must-revalidate' in h.get('Cache-Control','')
 assert root.tag=='{'+ns['s']+'}urlset';urls=root.findall('s:url',ns);assert len(urls)==38
 rh,rb=fetch('/robots.txt');assert rh.get_content_type()=='text/plain';robots=urllib.robotparser.RobotFileParser();robots.parse(rb.decode().splitlines());assert origin+'/sitemap.xml' in robots.site_maps()

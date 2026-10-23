@@ -87,6 +87,7 @@ jobs:
           name: deployment-receipt-${{ github.run_id }}
           path: |
             work/deployment.json
+            work/release-verification.json
             test-results/
             playwright-report/
           retention-days: 14

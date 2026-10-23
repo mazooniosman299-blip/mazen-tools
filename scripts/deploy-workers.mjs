@@ -63,6 +63,7 @@ if (process.argv.includes('--rollback')) {
   assert.equal(candidates.length, 1, 'Uploaded version could not be identified unambiguously; no promotion');
   const candidate = candidates[0].id;
   await promoteSafely({previous, candidate, readCurrent, deploy, record, verify: async () => {
+    await command(process.execPath, ['scripts/check-release.mjs']);
     await command('python3', ['scripts/check-sitemap.py', '--base', origin, '--require-self']);
     // Downloads and file contents are tested against the public release, not just the build.
     await command('npx', ['--no-install', 'playwright', 'test'], {PUBLIC_ORIGIN: origin});
