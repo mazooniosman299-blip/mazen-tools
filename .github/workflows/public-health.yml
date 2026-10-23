@@ -19,6 +19,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: mkdir -p work
+      - name: Capture actual public HTTP evidence
+        run: python3 scripts/crawl-evidence.py
       - name: Check sitemap, robots, all listed routes, canonical and verification
         run: python3 scripts/check-sitemap.py --base "$PUBLIC_ORIGIN" --require-self > work/crawl-health.json
       - run: npm ci
@@ -38,6 +40,7 @@ jobs:
         with:
           name: public-health-${{ github.run_id }}
           path: |
+            work/public-evidence.json
             work/crawl-health.json
             work/performance.json
             playwright-report/
