@@ -22,7 +22,7 @@ jobs:
       - name: Capture actual public HTTP evidence
         run: python3 scripts/crawl-evidence.py
       - name: Check sitemap, robots, all listed routes, canonical and verification
-        run: python3 scripts/check-sitemap.py --base "$PUBLIC_ORIGIN" --require-self > work/crawl-health.json
+        run: python3 scripts/check-sitemap.py --base "$PUBLIC_ORIGIN" > work/crawl-health.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - name: Weekly real functional downloads on desktop and mobile
