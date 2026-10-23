@@ -1,3 +1,4 @@
+import {startMeasurement} from './measurement.js';
 import './style.css';
 import adConfig from '../config/monetization.json';
 import {mountApprovedAd} from './ad-policy.js';
@@ -23,3 +24,5 @@ if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.ser
 
 // No ad request occurs until a separately reviewed certified consent adapter exists.
 if(adConfig.enabled&&typeof window.mazenCertifiedConsentAdapter?.subscribe==='function'){window.mazenCertifiedConsentAdapter.subscribe(consent=>mountApprovedAd(adConfig,'tool-after-guide',consent));}
+
+startMeasurement();

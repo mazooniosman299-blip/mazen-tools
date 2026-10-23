@@ -7,7 +7,9 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build && node scripts/pages.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "check:seo": "node scripts/check-site.mjs",
+    "deploy:workers": "node scripts/deploy-workers.mjs"
   },
   "dependencies": {
     "pdf-lib": "^1.17.1",

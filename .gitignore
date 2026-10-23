@@ -4,3 +4,9 @@ dist/
 *.log
 playwright-report/
 test-results/
+
+work/
+.wrangler/
+*.key
+__pycache__/
+*.pyc

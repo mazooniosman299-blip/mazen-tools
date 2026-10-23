@@ -24,8 +24,12 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
+      - run: python3 -m unittest discover -s tests -p 'sitemap_*.py'
       - run: node scripts/check-site.mjs
       - run: node scripts/readiness.mjs
+      - run: node scripts/performance-check.mjs
+        env:
+          PERFORMANCE_LOCAL: 'true'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

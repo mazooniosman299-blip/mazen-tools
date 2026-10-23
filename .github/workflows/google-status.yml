@@ -1,0 +1,47 @@
+name: Official Google status and sitemap submission
+on:
+  workflow_dispatch:
+    inputs:
+      submit_sitemap:
+        description: Submit only after public sitemap HTTP checks pass
+        type: boolean
+        default: false
+  schedule:
+    - cron: '47 4 * * 1'
+permissions:
+  contents: read
+jobs:
+  google:
+    if: vars.GOOGLE_REPORTS_ENABLED == 'true' && github.repository == format('{0}/mazen-tools', github.repository_owner)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Read actual authorized Google data
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          SUBMIT_SITEMAP: ${{ inputs.submit_sitemap }}
+        run: |
+          if [ "$SUBMIT_SITEMAP" = "true" ]; then
+            node scripts/google-report.mjs --submit-sitemap
+          else
+            node scripts/google-report.mjs
+          fi
+      - run: node scripts/growth-report.mjs
+      - name: Technical status only
+        run: |
+          echo 'Google integration status (not indexing or ad approval)' >> "$GITHUB_STEP_SUMMARY"
+          cat work/google-status.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: google-technical-status
+          path: |
+            work/google-status.json
+            work/growth-status.json
+          retention-days: 14
+      # Private raw search/analytics/financial reports are deliberately not uploaded.

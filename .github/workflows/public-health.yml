@@ -1,30 +1,45 @@
-name: Public functional health checks
+name: Daily crawl health and weekly functional checks
 on:
   workflow_dispatch:
   schedule:
-    - cron: '17 6 * * 1'
+    - cron: '17 3 * * *'
+    - cron: '47 3 * * 1'
 permissions:
   contents: read
 jobs:
-  check-public:
+  crawl:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      PUBLIC_ORIGIN: https://mazen-tools-free.sprytitan65.chatgpt.site
+      PUBLIC_ORIGIN: https://mazentoolsfree.mazooniosman299.workers.dev
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+      - run: mkdir -p work
+      - name: Check sitemap, robots, all listed routes, canonical and verification
+        run: python3 scripts/check-sitemap.py --base "$PUBLIC_ORIGIN" --require-self > work/crawl-health.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:browser
+      - name: Weekly real functional downloads on desktop and mobile
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '47 3 * * 1'
+        run: npm run test:browser
+      - name: Measure real browser navigation performance
+        run: node scripts/performance-check.mjs
+      - name: Concise report
+        if: always()
+        run: |
+          echo "Mazen Tools daily health: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "See crawl-health.json, performance.json and any retained failure traces. These are technical tests, not traffic or earnings." >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: public-functional-results
+          name: public-health-${{ github.run_id }}
           path: |
+            work/crawl-health.json
+            work/performance.json
             playwright-report/
             test-results/
           retention-days: 14

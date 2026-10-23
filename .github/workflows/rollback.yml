@@ -1,0 +1,38 @@
+name: Restore a recorded previous deployment
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_run_id:
+        description: Successful or failed deployment run containing the snapshot
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: mazentoolsfree-production
+  cancel-in-progress: false
+jobs:
+  rollback:
+    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && github.repository == format('{0}/mazen-tools', github.repository_owner)
+    environment: production
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: deployment-receipt-${{ inputs.deployment_run_id }}
+          path: snapshot
+          run-id: ${{ inputs.deployment_run_id }}
+          github-token: ${{ github.token }}
+      - run: node scripts/deploy-workers.mjs --rollback snapshot/work/deployment.json
+        env:
+          CLOUDFLARE_DEPLOY_ENABLED: 'true'
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
