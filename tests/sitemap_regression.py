@@ -12,6 +12,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
   if path.endswith('.txt'):return 'text/plain; charset=utf-8'
   return super().guess_type(path)
  def do_GET(self):
+  if self.mode=='agent' and 'MazenTools-Sitemap-Check' not in self.headers.get('User-Agent',''):
+   self.send_response(403);self.end_headers();return
   if self.path=='/nonexistent-sitemap-check-404' and self.mode in ['soft404','forbidden']:
    self.send_response(200 if self.mode=='soft404' else 403);self.end_headers();self.wfile.write(b'Unknown page');return
   if self.path=='/sitemap.xml' and self.mode in ['html','redirect','xml']:
@@ -35,6 +37,7 @@ class SitemapRegression(unittest.TestCase):
  def test_malformed_xml_is_rejected(self):self.check('xml',False)
  def test_noindex_header_is_rejected(self):self.check('noindex',False)
  def test_robots_block_is_rejected(self):self.check('blocked',False)
+ def test_all_monitor_requests_identify_themselves(self):self.check('agent',True)
  def test_soft404_is_rejected(self):self.check('soft404',False)
  def test_forbidden_unknown_route_is_reported_separately(self):self.check('forbidden',True)
 if __name__=='__main__':unittest.main()

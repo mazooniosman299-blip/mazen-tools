@@ -33,11 +33,11 @@ for item in urls:
   assert any(x.get('href')==loc for x in links)
 assert all(link.get('href') in seen for item in urls for link in item.findall('x:link',ns))
 warnings=[]
-try:opener.open(base+'/nonexistent-sitemap-check-404',timeout=10);raise AssertionError('Missing URL returned success (soft 404)')
+try:opener.open(urllib.request.Request(base+'/nonexistent-sitemap-check-404',headers={'User-Agent':'MazenTools-Sitemap-Check/1.0'}),timeout=10);raise AssertionError('Missing URL returned success (soft 404)')
 except urllib.error.HTTPError as e:
  unknown_status=e.code
  assert e.code in [403,404,410],f'Unknown route returned unexpected HTTP {e.code}'
  if e.code==403:warnings.append('An unknown test route is forbidden (403), rather than not found (404). All listed sitemap URLs are checked separately and must return 200.')
-with urllib.request.urlopen(base+'/google611146e9ceec162a.html',timeout=15) as verification:
+with urllib.request.urlopen(urllib.request.Request(base+'/google611146e9ceec162a.html',headers={'User-Agent':'MazenTools-Sitemap-Check/1.0'}),timeout=15) as verification:
  assert verification.status==200 and verification.read()==b'google-site-verification: google611146e9ceec162a.html'
 print(json.dumps({'scope':'HTTP checks against supplied base, not Google indexing confirmation','base':base,'sitemapStatus':200,'contentType':h.get_content_type(),'xmlValid':True,'urlsChecked':len(seen),'robotsAllowsGooglebot':True,'canonicalMatches':True,'redirectsRejected':True,'verificationFilePreserved':True,'real404':unknown_status==404,'unknownRouteStatus':unknown_status,'warnings':warnings},indent=2))
