@@ -88,6 +88,7 @@ jobs:
           path: |
             work/deployment.json
             work/release-verification.json
+            work/public-evidence.json
             test-results/
             playwright-report/
           retention-days: 14

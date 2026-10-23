@@ -2,7 +2,7 @@
 import hashlib,json,pathlib,urllib.request,urllib.error,urllib.robotparser,xml.etree.ElementTree as ET
 origin='https://mazentoolsfree.mazooniosman299.workers.dev'
 rows=[]
-for path in ['/sitemap.xml','/robots.txt','/ar/images-pdf/','/en/images-pdf/','/google611146e9ceec162a.html']:
+for path in ['/sitemap.xml','/robots.txt','/ar/images-pdf/','/en/images-pdf/','/google611146e9ceec162a.html','/nonexistent-sitemap-check-404','/this-page-does-not-exist/']:
  row={'path':path}
  try:
   with urllib.request.urlopen(urllib.request.Request(origin+path,headers={'User-Agent':'MazenTools-Crawl-Diagnostic/1.0'}),timeout=25) as response:
@@ -13,6 +13,8 @@ for path in ['/sitemap.xml','/robots.txt','/ar/images-pdf/','/en/images-pdf/','/
      row.update(xmlValid=True,root=root.tag,urlCount=len(urls),selfAlternates=all(any(x.get('href')==u.find('s:loc',ns).text for x in u.findall('x:link',ns)) for u in urls),origins=sorted(set(urllib.parse.urlsplit(u.find('s:loc',ns).text).netloc for u in urls)))
     except ET.ParseError as error:row.update(xmlValid=False,error=str(error))
    if path=='/robots.txt':row['body']=body.decode('utf-8',errors='replace')[:2000]
+ except urllib.error.HTTPError as error:
+  body=error.read();row.update(status=error.code,headers={k:v for k,v in error.headers.items() if k.lower() in ['content-type','server','cf-mitigated','location']},bytes=len(body),sha256=hashlib.sha256(body).hexdigest())
  except Exception as error:row['error']=str(error)
  rows.append(row)
 pathlib.Path('work').mkdir(exist_ok=True)

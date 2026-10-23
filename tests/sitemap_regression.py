@@ -12,6 +12,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
   if path.endswith('.txt'):return 'text/plain; charset=utf-8'
   return super().guess_type(path)
  def do_GET(self):
+  if self.path=='/nonexistent-sitemap-check-404' and self.mode in ['soft404','forbidden']:
+   self.send_response(200 if self.mode=='soft404' else 403);self.end_headers();self.wfile.write(b'Unknown page');return
   if self.path=='/sitemap.xml' and self.mode in ['html','redirect','xml']:
    if self.mode=='redirect':self.send_response(307);self.send_header('Location','/ar/');self.end_headers();return
    self.send_response(200);self.send_header('Content-Type','text/html' if self.mode=='html' else 'application/xml; charset=utf-8');self.end_headers();self.wfile.write(b'<html>SPA fallback</html>' if self.mode=='html' else b'<urlset>broken XML');return
@@ -33,4 +35,6 @@ class SitemapRegression(unittest.TestCase):
  def test_malformed_xml_is_rejected(self):self.check('xml',False)
  def test_noindex_header_is_rejected(self):self.check('noindex',False)
  def test_robots_block_is_rejected(self):self.check('blocked',False)
+ def test_soft404_is_rejected(self):self.check('soft404',False)
+ def test_forbidden_unknown_route_is_reported_separately(self):self.check('forbidden',True)
 if __name__=='__main__':unittest.main()
