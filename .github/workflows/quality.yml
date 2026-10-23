@@ -49,6 +49,11 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ steps.access.outputs.account_id }}
+      - name: Query current retained crawler evidence without public raw logs
+        run: node scripts/crawler-report.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ steps.access.outputs.account_id }}
       - name: Read official Google status if credentials already exist; no submission
         run: |
           node scripts/google-report.mjs
@@ -57,10 +62,6 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-      - name: Controlled alert delivery test; no site failure is claimed
-        run: node scripts/test-alert-delivery.mjs
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
