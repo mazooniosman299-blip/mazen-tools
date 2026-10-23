@@ -14,7 +14,7 @@ if(!account){
 }
 if(!/^[a-f0-9]{32}$/i.test(account||''))throw Error('Invalid authorized account');
 const now=Date.now();
-const response=await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/workers/observability/telemetry/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({queryId:'mazen-tools-crawl-readonly',timeframe:{from:now-86400000,to:now},parameters:{datasets:['mazentoolsfree']},view:'events',limit:2000,dry:true}),signal:AbortSignal.timeout(30000)});
+const response=await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/workers/observability/telemetry/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({queryId:'mazen-tools-crawl-readonly',timeframe:{from:now-86400000,to:now},parameters:{datasets:[],filters:[{key:'$metadata.service',operation:'eq',type:'string',value:'mazentoolsfree'}]},view:'events',limit:2000,dry:true}),signal:AbortSignal.timeout(30000)});
 if(!response.ok){await finish({logQueryAvailable:false,httpStatus:response.status,reason:response.status===403?'Token cannot query Workers Observability; additional official permission required':'Cloudflare telemetry query failed; no conclusion about Google access'});process.exit(0);}
 const data=await response.json();
 if(data.success===false){await finish({logQueryAvailable:false,reason:'Cloudflare did not confirm the telemetry query'});process.exit(0);}
