@@ -24,6 +24,11 @@ jobs:
       - run: mkdir -p work
       - name: Capture actual public HTTP evidence
         run: python3 scripts/crawl-evidence.py
+      - name: Query private crawler evidence when officially authorized
+        run: node scripts/crawler-report.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       - name: Check sitemap, robots, all listed routes, canonical and verification
         run: python3 scripts/check-sitemap.py --base "$PUBLIC_ORIGIN" > work/crawl-health.json
       - run: npm ci
@@ -42,6 +47,7 @@ jobs:
           path: |
             work/public-evidence.json
             work/crawl-health.json
+            work/crawler-log-status.json
             work/performance.json
             playwright-report/
             test-results/

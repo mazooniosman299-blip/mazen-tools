@@ -58,7 +58,7 @@ const subdomain = await api(`/accounts/${account}/workers/subdomain`);
 assert.equal(subdomain.subdomain, 'mazooniosman299', 'Wrong Cloudflare account; no changes made');
 const previous = await readCurrent();
 const settings = await api(prefix + '/settings');
-assert.ok((settings.bindings || []).every(b => ['plain_text', 'secret_text'].includes(b.type)), 'Existing resource bindings require a reviewed migration; no changes made');
+assert.ok((settings.bindings || []).every(b => (['plain_text', 'secret_text'].includes(b.type) || (b.type === 'assets' && b.name === 'ASSETS'))), 'Existing resource bindings require a reviewed migration; no changes made');
 if (process.argv.includes('--rollback')) {
   const snapshot = JSON.parse(await readFile(process.argv[process.argv.indexOf('--rollback') + 1], 'utf8'));
   assert.equal(snapshot.origin, origin);
