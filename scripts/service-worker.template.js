@@ -24,7 +24,12 @@ self.addEventListener('fetch', event => {
       try { const response = await fetch(request); if (response.ok) return response; } catch {}
       const cache = await caches.open(CACHE);
       const pathname = url.pathname.endsWith('/') ? url.pathname + 'index.html' : url.pathname;
-      return await cache.match(pathname, {ignoreVary:true}) || new Response('Page unavailable offline', {status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});
+      const fallback = await cache.match(pathname, {ignoreVary:true});
+      // Static hosts redirect /page/index.html to /page/. A cached redirected
+      // response cannot satisfy a navigation whose redirect mode is manual.
+      // Reconstruct the same bytes/headers without redirect metadata.
+      if (fallback) return new Response(fallback.body, {status:fallback.status,statusText:fallback.statusText,headers:fallback.headers});
+      return new Response('Page unavailable offline', {status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});
     })());
     return;
   }

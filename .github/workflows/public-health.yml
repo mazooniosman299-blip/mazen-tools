@@ -24,7 +24,7 @@ jobs:
       - name: Check sitemap, robots, all listed routes, canonical and verification
         run: python3 scripts/check-sitemap.py --base "$PUBLIC_ORIGIN" > work/crawl-health.json
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - name: Measure real browser navigation performance
         run: node scripts/performance-check.mjs
       - name: Concise report
@@ -57,7 +57,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - name: Real public tool execution and download validation
         run: npm run test:browser
       - uses: actions/upload-artifact@v4

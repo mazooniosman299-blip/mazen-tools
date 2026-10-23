@@ -22,8 +22,10 @@ jobs:
       - run: npm test
       - run: npm audit --omit=dev --audit-level=high
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - run: npm run test:browser
+        env:
+          CLOUDFLARE_LOCAL: 'true'
       - run: python3 -m unittest discover -s tests -p 'sitemap_*.py'
       - run: node scripts/check-site.mjs
       - run: node scripts/readiness.mjs
