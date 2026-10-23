@@ -2,8 +2,34 @@
 const CACHE = '__CACHE__';
 const FILES = __FILES__;
 const ASSETS = new Set(FILES);
+async function fetchRequiredAsset(path) {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    let response;
+    try { response = await fetch(path, {cache:'reload', signal:AbortSignal.timeout(8000)}); }
+    catch (error) {
+      if (attempt === 3) throw new Error(`Offline asset unavailable: ${path}`, {cause:error});
+    }
+    if (response?.status === 200) return response;
+    if (response && ![408,429,500,502,503,504].includes(response.status)) {
+      throw new Error(`Offline asset ${path}: HTTP ${response.status}`);
+    }
+    if (attempt === 3) throw new Error(`Offline asset ${path}: HTTP ${response?.status || 'network failure'}`);
+    await new Promise(resolve => setTimeout(resolve, attempt * 250));
+  }
+}
+async function precacheRequiredAssets(cache) {
+  let index = 0;
+  // Avoid a burst of dozens of simultaneous requests at the edge. Every file
+  // remains mandatory; a permanent error prevents activation of this version.
+  await Promise.all(Array.from({length:4}, async () => {
+    while (index < FILES.length) {
+      const path = FILES[index++];
+      await cache.put(path, await fetchRequiredAsset(path));
+    }
+  }));
+}
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then(precacheRequiredAssets).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
