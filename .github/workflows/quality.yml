@@ -42,7 +42,7 @@ jobs:
           const token=cloudflareToken(process.env.CLOUDFLARE_API_TOKEN);
           if(!token){console.log('CLOUDFLARE_LOG_ACCESS: no token configured');process.exit(0)}
           console.log(`::add-mask::${token}`);
-          const r=await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/mazentoolsfree/settings`,{headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(30000)});
+          const r=await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/mazentoolsfree/script-settings`,{headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(30000)});
           const d=await r.json();
           console.log('CLOUDFLARE_LOGGING_CONFIGURATION='+JSON.stringify({status:r.status,success:d.success,observability:d.result?.observability??null,logpush:d.result?.logpush??null,note:'Read-only settings; not proof of Googlebot fetches or historical WAF events.'}));
           JS
