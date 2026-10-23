@@ -33,7 +33,7 @@ async function deploy(versions) {
 }
 function command(bin, args, extra = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(bin, args, {stdio: 'inherit', env: {...process.env, WRANGLER_SEND_METRICS: 'false', ...extra}});
+    const child = spawn(bin, args, {stdio: 'inherit', env: {...process.env, WRANGLER_SEND_METRICS: 'false', CLOUDFLARE_API_TOKEN: token, ...extra}});
     child.on('error', reject); child.on('exit', code => code === 0 ? resolve() : reject(new Error(`${bin} failed (${code})`)));
   });
 }

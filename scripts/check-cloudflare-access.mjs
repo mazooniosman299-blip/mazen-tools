@@ -13,7 +13,7 @@ if(!token){
 }else{
   async function get(path){
     const response=await fetch('https://api.cloudflare.com/client/v4'+path,{headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(30000)});
-    const data=await response.json();assert.ok(response.ok&&data.success,`Cloudflare authorization check failed (HTTP ${response.status}); no changes attempted`);return data.result;
+    const data=await response.json();assert.ok(response.ok&&data.success,`Cloudflare authorization check failed for ${path} (HTTP ${response.status}); no changes attempted`);return data.result;
   }
   const accounts=process.env.CLOUDFLARE_ACCOUNT_ID?[{id:process.env.CLOUDFLARE_ACCOUNT_ID}]:await get('/accounts?per_page=50');
   const matches=[];

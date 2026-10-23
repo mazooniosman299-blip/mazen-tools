@@ -11,7 +11,7 @@ test('invalid multiline credentials are rejected without disclosing their conten
 });
 test('the official curl header or token JSON can be imported without executing code', () => {
   const token = 'example-token-for-testing-only-123';
-  assert.equal(cloudflareToken(`curl https://api.cloudflare.com/client/v4/user/tokens/verify \\\n+  -H "Authorization: Bearer ${token}"`), token);
+  assert.equal(cloudflareToken(`curl https://api.cloudflare.com/client/v4/user/tokens/verify \\\n  -H "Authorization: Bearer ${token}"`), token);
   assert.equal(cloudflareToken(JSON.stringify({value: token})), token);
   assert.throws(() => cloudflareToken(`Authorization: Bearer ${token}\nAuthorization: Bearer ${token}`), /Multiple authorization/);
 });
