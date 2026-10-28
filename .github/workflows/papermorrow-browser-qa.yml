@@ -1,0 +1,33 @@
+name: PaperMorrow browser QA (free Chromium)
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/papermorrow-browser-qa.yml'
+      - '.github/scripts/papermorrow-browser-check.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  test-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Set up browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Audit all 24 tool pages in both languages
+        run: node .github/scripts/papermorrow-browser-check.mjs
+      - name: Save page report and screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: papermorrow-browser-qa
+          path: papermorrow-browser-report/
+          retention-days: 7
