@@ -21,7 +21,7 @@ jobs:
       - name: Set up browser
         run: |
           npm install --no-save playwright@1.56.1
-          npx playwright install --with-deps chromium
+          node node_modules/playwright/cli.js install --with-deps chromium
       - name: Audit all 24 tool pages in both languages
         run: node .github/scripts/papermorrow-browser-check.mjs
       - name: Save page report and screenshot
