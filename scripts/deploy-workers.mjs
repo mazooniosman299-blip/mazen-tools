@@ -74,7 +74,7 @@ if (process.argv.includes('--rollback')) {
   assert.equal(build.adsEnabled, false, 'Advertising activation requires its own reviewed release');
   await record({previous, status: 'snapshot-before-upload'});
   const tag = `ci-${process.env.GITHUB_RUN_ID || Date.now()}-${process.env.GITHUB_RUN_ATTEMPT || '1'}`;
-  await retryAssetUpload(() => command('npx', ['--no-install', 'wrangler', 'versions', 'upload', '--config', 'wrangler.jsonc', '--keep-vars', '--tag', tag, '--message', 'Mazen Tools checked production assets'], {}, true), {report: attempt => console.log(`Cloudflare asset-session error 10013; bounded upload retry ${attempt}/2. Traffic has not been promoted.`)});
+  await retryAssetUpload(() => command('npx', ['--no-install', 'wrangler', 'versions', 'upload', '--config', 'wrangler.jsonc', '--keep-vars', '--strict', '--tag', tag, '--message', 'Mazen Tools checked production assets'], {}, true), {report: attempt => console.log(`Cloudflare asset-session error 10013; bounded upload retry ${attempt}/2. Traffic has not been promoted.`)});
   const {items} = await api(prefix + '/versions?deployable=true');
   const candidates = items.filter(v => v.annotations?.['workers/tag'] === tag);
   assert.equal(candidates.length, 1, 'Uploaded version could not be identified unambiguously; no promotion');
